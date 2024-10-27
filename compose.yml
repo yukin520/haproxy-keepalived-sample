@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  web1:
+    build: ./app/
+    container_name: web1
+    environment:
+      RETURN_MSG: Response from web1.
+    networks:
+      - haproxy-test-nw
+
+  web2:
+    build: ./app/
+    container_name: web2
+    environment:
+      RETURN_MSG: Response from web2.
+    networks:
+      - haproxy-test-nw
+
+  web3:
+    build: ./app/
+    container_name: web3
+    environment:
+      RETURN_MSG: Response from web3.
+    networks:
+      - haproxy-test-nw
+
+  haproxy1:
+    build: ./haproxy/
+    container_name: haproxy1
+    networks:
+      haproxy-test-nw:
+        ipv4_address: 10.0.0.150
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "8080:80"
+      - "8404:8404"
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - ./haproxy/keepalived_primary.conf:/etc/keepalived/keepalived.conf:ro
+    depends_on:
+      - web1
+      - web2
+      - web3
+    entrypoint: ["/bin/sh", "-c", "keepalived -D -f /etc/keepalived/keepalived.conf && haproxy -f /usr/local/etc/haproxy/haproxy.cfg"]
+
+  haproxy2:
+    build: ./haproxy/
+    container_name: haproxy2
+    networks:
+      haproxy-test-nw:
+        ipv4_address: 10.0.0.155
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "8081:80"
+      - "8405:8404"
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - ./haproxy/keepalived_bck.conf:/etc/keepalived/keepalived.conf:ro
+    depends_on:
+      - web1
+      - web2
+      - web3
+    entrypoint: ["/bin/sh", "-c", "keepalived -D -f /etc/keepalived/keepalived.conf && haproxy -f /usr/local/etc/haproxy/haproxy.cfg"]
+
+  client:
+    build: ./client
+    container_name: client
+    networks:
+      - haproxy-test-nw
+    tty: true
+
+networks:
+  haproxy-test-nw:
+   driver: bridge
+   ipam:  
+    config : 
+       - subnet: 10.0.0.0/24
+         gateway: 10.0.0.1

@@ -33,6 +33,6 @@ HAProxyとKeepalivedの動作をサクッと確認するためのリポジトリ
     ```
 
 
-## 参考
+## reference
 
 [Building a High Availability Cluster with HAProxy, Keepalived, and Docker: A Step-by-Step Guide](https://medium.com/@yahyasghiouri1998/building-a-high-availability-cluster-with-haproxy-keepalived-and-docker-a-step-by-step-guide-9325f4ac8aa7)
